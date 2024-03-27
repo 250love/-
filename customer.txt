@@ -1,0 +1,175 @@
+小红 华北 华南 小红 2 2 12 123 -3689348814741910324 -3689348814741910324
+小明 东北 沈阳 小明 1 2 12345 1234567 -3689348814741910324 -3689348814741910324
+小李 1234566 122 211 1 1 1 1 -3689348814741910324 -3689348814741910324
+struct Node01 {
+    struct Customer data;
+    struct Node01* next;
+};
+
+struct Node01* head01 = NULL;
+
+/*
+ * 创建一个包含客户数据的新节点
+ */
+struct Node01* createNode(struct Customer* pdata) {
+    struct Node01* pNew = (struct Node01*)malloc(sizeof(struct Node01));
+    if (pNew == NULL) {
+        return NULL;
+    }
+    pNew->next = NULL;
+    pNew->data = *pdata;
+    return pNew;
+}
+/*
+ * 将新节点添加到链表中
+ */
+void addNode(struct Node01** root, struct Customer* pdata) {
+    if (root == NULL) return;
+    if (*root == NULL) {
+        *root = createNode(pdata);
+        return;
+    }
+    struct Node01* pTemp = *root;
+    while (pTemp->next != NULL) {
+        pTemp = pTemp->next;
+    }
+    pTemp->next = createNode(pdata);
+}
+
+/*
+ * 从文件中读取客户数据并填充链表
+ */
+void readDataFromFile(struct Node01** root) {
+    FILE* fp = fopen("./customer.txt", "r");
+    if (fp == NULL) {
+        printf("数据检索失败！正在退出系统...\n");
+        exit(0);
+    }
+    struct Customer temp;
+    while (fscanf(fp, "%s %s %s %s %d %d %s %lld %lld %lld\n", temp.c_name, temp.c_area, temp.c_address, temp.c_legal_person, &temp.c_scale, &temp.c_contact, temp.c_email, &temp.c_phone_number[0], &temp.c_phone_number[1], &temp.c_phone_number[2]) == 10) {
+        addNode(root, &temp);
+    }
+    fclose(fp);
+}
+
+void writeDataToFile(struct Node01* root) {
+    FILE* fp = fopen("./customer.txt", "w");
+    if (fp == NULL) {
+        printf("文件打开失败！\n");
+        return;
+    }
+    while (root) {
+        fprintf(fp, "%s %s %s %s %d %d %s %lld %lld %lld\n", root->data.c_name, root->data.c_area, root->data.c_address, root->data.c_legal_person, root->data.c_scale, root->data.c_contact, root->data.c_email, root->data.c_phone_number[0], root->data.c_phone_number[1], root->data.c_phone_number[2]);
+        root = root->next;
+    }
+    fclose(fp);
+}
+
+/*
+ * 释放链表内存
+ */
+void freeList(struct Node01* root) {
+    struct Node01* current = root;
+    while (current) {
+        struct Node01* next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+/*
+ * 添加客户信息
+ */
+void addCustomer() {
+    struct Customer temp;
+    printf("输入客户信息：\n");
+    printf("姓名：");
+    scanf("%s", temp.c_name);
+    printf("区域：");
+    scanf("%s", temp.c_area);
+    printf("地址：");
+    scanf("%s", temp.c_address);
+    printf("法人：");
+    scanf("%s", temp.c_legal_person);
+    printf("规模：");
+    scanf("%d",&temp.c_scale);
+    printf("与我司联系程度：");
+    scanf("%d", &temp.c_contact);
+    printf(" 邮箱：");
+    scanf("%s",temp.c_email);
+    printf("电话数量：");
+    int nums = 0;
+    scanf("%d", &nums);
+    for (int i = 0; i < nums; i++) {
+        scanf("%lld", &temp.c_phone_number[i]);
+    }
+    // 添加其他字段的输入提示，并填充临时结构体
+
+    addNode(&head01, &temp);
+    writeDataToFile(head01);
+    printf("客户信息添加成功！\n");
+}
+
+/*
+ * 删除客户信息
+ */
+void deleteCustomer() {
+    char name[MAX_NAME];
+    printf("输入要删除的客户姓名：");
+    scanf("%s", name);
+
+    struct Node01* current = head01;
+    struct Node01* prev = NULL;
+
+    while (current) {
+        if (strcmp(current->data.c_name, name) == 0) {
+            if (prev == NULL) {
+                head01 = current->next;
+            }
+            else {
+                prev->next = current->next;
+            }
+            free(current);
+            writeDataToFile(head01);
+            printf("客户删除成功！\n");
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    printf("未找到客户！\n");
+}
+/*
+* 修改信息(设置不同的选项)
+*/
+void reviseInformation() {
+    printf("1.修改姓名");
+    printf("2.修改区域");
+    printf("3.修改地址");
+    printf("4.修改法人");
+    int cnt;
+    scanf("%d", &cnt);
+}
+/*
+* 遍历链表表读取数据
+*/
+void ReadList() {
+    readDataFromFile(&head01);
+    struct Node01* current = head01;
+    while (current) {
+        printf("姓名: %s\n", current->data.c_name);
+        printf("区域: %s\n", current->data.c_area);
+        printf("地址: %s\n", current->data.c_address);
+        printf("法人: %s\n", current->data.c_legal_person);
+        printf("规模: %d\n", current->data.c_scale);
+        printf("与我司联系程度: %d\n", current->data.c_contact);
+        printf("邮箱: %s\n", current->data.c_email);
+        printf("\n\n");
+        current = current->next;
+    }
+}
+int main() {
+    ReadList();
+    freeList(head01);
+}
